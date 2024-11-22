@@ -12,17 +12,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FileUpload } from "@/components/fileupload";
+import { FileDisplay } from "@/components/file-display";
 import { useFFmpeg } from "@/hooks/ffmpeg";
-import { useNano } from "@/hooks/nano";
-import { systemPrompt, ffmpegNLToCommand } from "@/lib/AI";
+import { useAI } from "@/hooks/ai";
+import { ffmpegNLToCommand, ffmpegArgInterpolator } from "@/lib/AI";
 import { cn } from "@/lib/utils";
 import "./App.css";
 
-export const FFmpegContext = createContext(null);
-
 function App() {
-  const { transcodeFile } = useFFmpeg();
-  const { prompt, loaded: nanoLoaded } = useNano({ systemPrompt });
+  const { transcodeFile, getFile } = useFFmpeg();
+  const { prompt } = useAI();
   const [messages, setMessages] = useState([
     {
       role: "agent",
@@ -35,14 +34,15 @@ function App() {
     },
   ]);
   const [input, setInput] = useState("");
-  const [latestFileName, setLatestFileName] = useState("");
+  const [fileMetadata, setFileMetadata] = useState({});
   const inputLength = input.trim().length;
+  console.log(fileMetadata);
 
   useEffect(() => {
     const llm = async () => {
       const latestMessage = messages[messages.length - 1];
 
-      if (nanoLoaded && latestMessage.role === "user") {
+      if (latestMessage.role === "user") {
         setMessages([
           ...messages,
           {
@@ -53,6 +53,7 @@ function App() {
 
         const res = await prompt(latestMessage.content);
 
+        debugger;
         if (ffmpegNLToCommand.has(res)) {
           const newMessages = messages.filter(
             (msg) => msg.role !== "assistant"
@@ -66,14 +67,31 @@ function App() {
           ]);
 
           try {
-            await transcodeFile(ffmpegNLToCommand.get(res));
+            const cliArgs = ffmpegArgInterpolator(res, fileMetadata);
+            await transcodeFile(ffmpegArgInterpolator(res, fileMetadata));
+            const output =
+              fileMetadata.output !== cliArgs[cliArgs.length - 1]
+                ? cliArgs[cliArgs.length - 1]
+                : fileMetadata.output;
+            const [fileExt] = output.split(".").reverse();
+            const fileURL = await getFile(output, fileExt);
+            const newMessages = messages.filter(
+              (msg) => msg.role !== "assistant"
+            );
+            setMessages([
+              ...newMessages,
+              {
+                role: "agent",
+                content: <FileDisplay src={fileURL} ext={fileExt} />,
+              },
+            ]);
           } catch (e) {
             setMessages([
               ...messages,
               {
                 role: "agent",
                 content:
-                  "I'm sorry, but I can't seem to find any files matching that name. Did you upload one yet?",
+                  "I'm sorry, but I can't seem to find any files video or audio files. Did you upload one yet?",
               },
             ]);
           }
@@ -106,7 +124,7 @@ function App() {
         <CardContent>
           <div className="space-y-4">
             <FileUpload
-              onChangeHandler={(fileName) => setLatestFileName(fileName)}
+              onChangeHandler={(fileMetadata) => setFileMetadata(fileMetadata)}
             />
             {messages.map((message, index) => (
               <div
@@ -115,7 +133,10 @@ function App() {
                   "flex w-max max-w-[75%] flex-col gap-2 rounded-lg px-3 py-2 text-sm",
                   message.role === "user"
                     ? "ml-auto bg-primary text-primary-foreground"
-                    : "bg-muted"
+                    : "bg-muted",
+                  message.role === "assistant"
+                    ? "flex gap-2 flex-row items-center"
+                    : ""
                 )}
               >
                 {message.role === "assistant" && <Sparkle />}

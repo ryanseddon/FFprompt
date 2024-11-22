@@ -30,28 +30,28 @@ interface AILanguageModelCreateOptionsWithSystemPrompt
 }
 
 const nlToCommand = {
-  "Convert video to different format": ["-i", "video.mov", "output.mp4"],
+  "Convert video to different format": ["-i", "{{input}}", "{{output}}"],
   "Extract audio from video": [
     "-i",
-    "input.mp4",
+    "{{input}}",
     "-vn",
     "-acodec",
     "copy",
     "output.mp3",
   ],
-  "Convert audio to a different format": ["-i", "video.wav", "output.mp3"],
+  "Convert audio to a different format": ["-i", "{{input}}", "output.mp3"],
   "Trim a video (first 5 seconds)": [
     "-i",
-    "input.mp4",
+    "{{input}}",
     "-t",
     "5",
     "-c",
     "copy",
-    "output.mp4",
+    "{{output}}",
   ],
   "Trim a video (from a specific start time)": [
     "-i",
-    "input.mp4",
+    "{{input}}",
     "-ss",
     "00:00:02",
     "-to",
@@ -60,37 +60,37 @@ const nlToCommand = {
     "libx264",
     "-c:a",
     "aac",
-    "output.mp4",
+    "{{output}}",
   ],
   "Remove audio from a video": [
     "-i",
-    "input.mp4",
+    "{{input}}",
     "-an",
     "-c:v",
     "copy",
-    "output.mp4",
+    "{{output}}",
   ],
   "Add audio to a video": [
     "-i",
-    "input.mp4",
+    "{{input}}",
     "-i",
     "audio.mp3",
     "-c:v",
     "copy",
     "-c:a",
     "aac",
-    "output.mp4",
+    "{{output}}",
   ],
   "Change video resolution": [
     "-i",
-    "input.mp4",
+    "{{input}}",
     "-vf",
     "scale=1280:720",
-    "output.mp4",
+    "{{output}}",
   ],
   "Convert video to GIF": [
     "-i",
-    "input.mp4",
+    "{{input}}",
     "-vf",
     "fps=10,scale=320:-1:flags=lanczos",
     "-c:v",
@@ -99,20 +99,32 @@ const nlToCommand = {
   ],
   "Extract video frames (as images)": [
     "-i",
-    "input.mp4",
+    "{{input}}",
     "-vf",
     "fps=1",
     "image_%03d.png",
   ],
 };
 
-const systemPrompt = `Your job is to get the closest match from the input that matches one of the following comma separated items that appear only within """.
+const systemPrompt = `Your job is to get the closest match from the input that matches one of the following comma separated items that appear only within """. Only return the match do not include anything else.
 
 """
 ${Object.keys(nlToCommand).join(",")}
 """`;
 
 const ffmpegNLToCommand = new Map(Object.entries(nlToCommand));
+const ffmpegArgInterpolator = (key: string, options: object = {}) => {
+  const cliArgs = ffmpegNLToCommand.get(key);
+  const reTemplateVars = /\{\{(.*?)\}\}/g;
+
+  if (cliArgs) {
+    return cliArgs.map((arg) =>
+      arg.replace(reTemplateVars, (_, key) => options[key])
+    );
+  }
+
+  throw Error("No valid commands found");
+};
 
 class AI {
   session: AILanguageModel | null;
@@ -126,14 +138,13 @@ class AI {
   static ready = "readily";
 
   #getSession = async (): Promise<AILanguageModel> => {
-    window.ai.languageModel.create({ initialPrompts: [] });
     if (!window.ai?.languageModel) {
       console.error("Chrome AI not available on this device");
     }
 
     // Check if we have a session already active
     if (this.session) {
-      return this.session;
+      return this.session.clone();
     }
 
     // Check if model is available and ready to use
@@ -166,12 +177,15 @@ class AI {
     }
   }
 
-  prompt = async (input: string) => {
+  prompt = async (
+    input: string,
+    options?: AILanguageModelPromptOptions | undefined
+  ): Promise<string> => {
     const session = await this.#getSession();
-    const res = await session.prompt(input);
+    const res = await session.prompt(input, options);
 
     return res;
   };
 }
 
-export { AI, systemPrompt, ffmpegNLToCommand };
+export { AI, systemPrompt, ffmpegNLToCommand, ffmpegArgInterpolator };

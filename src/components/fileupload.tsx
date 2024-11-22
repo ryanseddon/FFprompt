@@ -5,7 +5,7 @@ import { useFFmpeg } from "@/hooks/ffmpeg";
 function FileUpload({
   onChangeHandler,
 }: {
-  onChangeHandler: (fileName: string) => void;
+  onChangeHandler: (fileMetadata: object) => void;
 }) {
   const { loadFFmpeg } = useFFmpeg();
   const handleOnChange = async (
@@ -19,16 +19,16 @@ function FileUpload({
     }
 
     const file = files[0];
-    const [fileExt] = file.name.split(".").reverse();
-
-    const fileName = `input.${fileExt}`;
+    const fileName = file.name;
+    const outputFileName = `output_${fileName}`;
 
     try {
       const fileData = await fetchFile(file);
       const ffmpeg = await loadFFmpeg();
 
       await ffmpeg.writeFile(fileName, fileData);
-      const dir = await ffmpeg.listDir("/");
+
+      onChangeHandler({ input: fileName, output: outputFileName });
     } catch (err) {
       console.error("Error processing file:", err);
     }
