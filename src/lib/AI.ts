@@ -1,18 +1,3 @@
-/// <reference types="@types/dom-chromium-ai" />
-type AICapabilityAvailability = "readily" | "after-download" | "no";
-
-interface AILanguageModelCapabilities {
-  readonly available: AICapabilityAvailability;
-
-  readonly defaultTopK: number | null;
-  readonly maxTopK: number | null;
-  readonly defaultTemperature: number | null;
-
-  supportsLanguage(
-    languageTag: Intl.UnicodeBCP47LocaleIdentifier
-  ): AICapabilityAvailability;
-}
-
 interface AILanguageModelCreateOptions {
   signal?: AbortSignal;
   monitor?: AICreateMonitorCallback;
@@ -34,10 +19,11 @@ const nlToCommand = {
   "Extract audio from video": [
     "-i",
     "{{input}}",
-    "-vn",
-    "-acodec",
-    "copy",
-    "output.mp3",
+    "-q:a",
+    "0",
+    "-map",
+    "a",
+    "{{name}}.mp3",
   ],
   "Convert audio to a different format": ["-i", "{{input}}", "output.mp3"],
   "Trim a video (first 5 seconds)": [
@@ -95,7 +81,7 @@ const nlToCommand = {
     "fps=10,scale=320:-1:flags=lanczos",
     "-c:v",
     "gif",
-    "output.gif",
+    "{{name}}.gif",
   ],
   "Extract video frames (as images)": [
     "-i",
@@ -113,7 +99,10 @@ ${Object.keys(nlToCommand).join(",")}
 """`;
 
 const ffmpegNLToCommand = new Map(Object.entries(nlToCommand));
-const ffmpegArgInterpolator = (key: string, options: object = {}) => {
+const ffmpegArgInterpolator = (
+  key: string,
+  options: Record<string, string> = {}
+) => {
   const cliArgs = ffmpegNLToCommand.get(key);
   const reTemplateVars = /\{\{(.*?)\}\}/g;
 
@@ -160,11 +149,15 @@ class AI {
 
     const { defaultTemperature, defaultTopK } =
       await window.ai.languageModel.capabilities();
-    const { temperature, topK, systemPrompt } = Object.assign({}, this.options);
+    const {
+      temperature = defaultTemperature ?? undefined,
+      topK = defaultTopK ?? undefined,
+      systemPrompt,
+    } = Object.assign({}, this.options);
 
     this.session = await window.ai.languageModel.create({
-      temperature: temperature ? temperature : defaultTemperature,
-      topK: topK ? topK : defaultTopK,
+      temperature,
+      topK,
       ...(systemPrompt !== undefined && { systemPrompt: systemPrompt }),
     });
 

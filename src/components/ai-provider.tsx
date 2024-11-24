@@ -1,7 +1,7 @@
 import React, { createContext, ReactNode } from "react";
 import { AI, systemPrompt } from "@/lib/AI";
 
-type AIContextType = {
+export type AIContextType = {
   prompt: (
     input: string,
     options?: AILanguageModelPromptOptions | undefined

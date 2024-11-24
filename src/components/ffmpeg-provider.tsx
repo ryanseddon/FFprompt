@@ -4,7 +4,7 @@ import { FFmpeg } from "@/lib/FFmpeg";
 export type FFmpegContextType = {
   loading: boolean;
   transcodeFile: (command: string[]) => Promise<any>;
-  getFile: (fileName: string) => Promise<string>;
+  getFile: (fileName: string, fileExt: string) => Promise<string>;
   loadFFmpeg: () => Promise<FFmpeg["ffmpeg"]>;
 };
 
@@ -55,9 +55,17 @@ export const FFmpegProvider: React.FC<{
   const getFile = async (fileName: string, fileExt: string) => {
     const ffmpeg = await loadFFmpeg();
     const fileData = await ffmpeg.readFile(fileName);
-    console.log(fileData);
+    const reImg = /(jpg|jpeg|png|gif|bmp|tiff|webp|svg)/;
+    const reAudio = /(mp3|wav|midi)/;
+    const fileType = reImg.test(fileExt)
+      ? `image/${fileExt}`
+      : reAudio.test(fileExt)
+        ? `audio/${fileExt}`
+        : `video/${fileExt}`;
     const data = new Uint8Array(fileData as ArrayBuffer);
-    const objURL = URL.createObjectURL(new Blob([data.buffer]));
+    const objURL = URL.createObjectURL(
+      new Blob([data.buffer], { type: fileType })
+    );
     console.log(objURL);
 
     return objURL;

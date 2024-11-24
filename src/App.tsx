@@ -1,4 +1,4 @@
-import { useEffect, useState, createContext } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { Sparkle, Send } from "lucide-react";
 
 import {
@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FileUpload } from "@/components/fileupload";
+import { MediaUpload } from "@/components/media-upload";
 import { FileDisplay } from "@/components/file-display";
 import { useFFmpeg } from "@/hooks/ffmpeg";
 import { useAI } from "@/hooks/ai";
@@ -22,7 +22,12 @@ import "./App.css";
 function App() {
   const { transcodeFile, getFile } = useFFmpeg();
   const { prompt } = useAI();
-  const [messages, setMessages] = useState([
+  const [messages, setMessages] = useState<
+    {
+      role: "agent" | "assistant" | "user";
+      content: string | ReactNode;
+    }[]
+  >([
     {
       role: "agent",
       content: "Hi, try using natrual language to edit an uploaded video",
@@ -34,13 +39,20 @@ function App() {
     },
   ]);
   const [input, setInput] = useState("");
-  const [fileMetadata, setFileMetadata] = useState({});
+  const [fileMetadata, setFileMetadata] = useState<{
+    input?: string;
+    output?: string;
+  }>({});
   const inputLength = input.trim().length;
   console.log(fileMetadata);
 
   useEffect(() => {
     const llm = async () => {
       const latestMessage = messages[messages.length - 1];
+      if (typeof latestMessage.content !== "string") {
+        // This is a FileDisplay message so just return early
+        return;
+      }
 
       if (latestMessage.role === "user") {
         setMessages([
@@ -53,7 +65,7 @@ function App() {
 
         const res = await prompt(latestMessage.content);
 
-        debugger;
+        console.log(res);
         if (ffmpegNLToCommand.has(res)) {
           const newMessages = messages.filter(
             (msg) => msg.role !== "assistant"
@@ -123,9 +135,6 @@ function App() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <FileUpload
-              onChangeHandler={(fileMetadata) => setFileMetadata(fileMetadata)}
-            />
             {messages.map((message, index) => (
               <div
                 key={index}
@@ -173,6 +182,9 @@ function App() {
               <Send />
               <span className="sr-only">Send</span>
             </Button>
+            <MediaUpload
+              onChangeHandler={(fileMetadata) => setFileMetadata(fileMetadata)}
+            />
           </form>
         </CardFooter>
       </Card>
