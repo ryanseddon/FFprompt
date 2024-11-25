@@ -128,7 +128,7 @@ function App() {
       <header className="flex sticky top-0 bg-background py-1.5 items-center px-2 md:px-2 gap-2"></header>
       <Card>
         <CardHeader>
-          <CardTitle>Convert files using natural language</CardTitle>
+          <CardTitle>FFPrompt</CardTitle>
           <CardDescription>
             Drop in a video and/or audio file and describe what you want to do
           </CardDescription>
