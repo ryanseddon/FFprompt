@@ -1,5 +1,6 @@
 import { useState, createContext, ReactNode } from "react";
 import { FFmpeg } from "@/lib/FFmpeg";
+import { getFileType } from "@/lib/utils";
 
 export type FFmpegContextType = {
   loading: boolean;
@@ -57,11 +58,8 @@ export const FFmpegProvider: React.FC<{
     const fileData = await ffmpeg.readFile(fileName);
     const reImg = /(jpg|jpeg|png|gif|bmp|tiff|webp|svg)/;
     const reAudio = /(mp3|wav|midi)/;
-    const fileType = reImg.test(fileExt)
-      ? `image/${fileExt}`
-      : reAudio.test(fileExt)
-        ? `audio/${fileExt}`
-        : `video/${fileExt}`;
+    const fileType = `${getFileType(fileExt)}/${fileExt}`;
+    console.log({ fileType });
     const data = new Uint8Array(fileData as ArrayBuffer);
     const objURL = URL.createObjectURL(
       new Blob([data.buffer], { type: fileType })
