@@ -1,5 +1,5 @@
 import React, { createContext, ReactNode } from "react";
-import { AI, systemPrompt } from "@/lib/AI";
+import { AI, initialPrompts } from "@/lib/AI";
 
 export type AIContextType = {
   prompt: (
@@ -13,8 +13,8 @@ export const AIContext = createContext<AIContextType | null>(null);
 export const AIProvider: React.FC<{
   children: ReactNode;
 }> = ({ children }) => {
-  console.log(systemPrompt);
-  const localLM = new AI({ systemPrompt });
+  console.log(initialPrompts);
+  const localLM = new AI({ initialPrompts });
 
   return (
     <AIContext.Provider value={{ prompt: localLM.prompt }}>

@@ -15,7 +15,7 @@ interface AILanguageModelCreateOptionsWithSystemPrompt
 }
 
 const nlToCommand = {
-  "Convert video to different format": ["-i", "{{input}}", "{{output}}"],
+  // "Convert video to different format": ["-i", "{{input}}", "{{output}}"],
   "Extract audio from video": [
     "-i",
     "{{input}}",
@@ -25,7 +25,7 @@ const nlToCommand = {
     "a",
     "{{name}}.mp3",
   ],
-  "Convert audio to a different format": ["-i", "{{input}}", "output.mp3"],
+  // "Convert audio to a different format": ["-i", "{{input}}", "output.mp3"],
   "Trim a video (first 5 seconds)": [
     "-i",
     "{{input}}",
@@ -56,17 +56,17 @@ const nlToCommand = {
     "copy",
     "{{output}}",
   ],
-  "Add audio to a video": [
-    "-i",
-    "{{input}}",
-    "-i",
-    "audio.mp3",
-    "-c:v",
-    "copy",
-    "-c:a",
-    "aac",
-    "{{output}}",
-  ],
+  // "Add audio to a video": [
+  // "-i",
+  // "{{input}}",
+  // "-i",
+  // "audio.mp3",
+  // "-c:v",
+  // "copy",
+  // "-c:a",
+  // "aac",
+  // "{{output}}",
+  // ],
   "Change video resolution": [
     "-i",
     "{{input}}",
@@ -88,15 +88,30 @@ const nlToCommand = {
     "{{input}}",
     "-vf",
     "fps=1",
-    "image_%03d.png",
+    "{{name}}_%03d.png",
   ],
 };
 
-const systemPrompt = `Your job is to get the closest match from the input that matches one of the following comma separated items that appear only within """. Only return the match do not include anything else.
+const systemPrompt = `Your job is to get the closest match from the input that matches one of the following comma separated items that appear only within """.
 
 """
 ${Object.keys(nlToCommand).join(",")}
 """`;
+
+const initialPrompts = [
+  { role: "system", content: systemPrompt },
+  { role: "user", content: "turn into gif" },
+  { role: "assistant", content: "Convert video to GIF" },
+  { role: "user", content: "Get audio" },
+  { role: "assistant", content: "Extract audio from video" },
+  { role: "user", content: "scale up" },
+  { role: "assistant", content: "Change video resolution" },
+  { role: "user", content: "Get audio" },
+  { role: "assistant", content: "make a gif" },
+  { role: "user", content: "Convert video to GIF" },
+  { role: "assistant", content: "get first 10 seconds" },
+  { role: "user", content: "Trim a video (first 5 seconds)" },
+];
 
 const ffmpegNLToCommand = new Map(Object.entries(nlToCommand));
 const ffmpegArgInterpolator = (
@@ -153,12 +168,14 @@ class AI {
       temperature = defaultTemperature ?? undefined,
       topK = defaultTopK ?? undefined,
       systemPrompt,
+      initialPrompts,
     } = Object.assign({}, this.options);
 
     this.session = await window.ai.languageModel.create({
       temperature,
       topK,
       ...(systemPrompt !== undefined && { systemPrompt: systemPrompt }),
+      ...(initialPrompts !== undefined && { initialPrompts: initialPrompts }),
     });
 
     return this.session;
@@ -181,4 +198,10 @@ class AI {
   };
 }
 
-export { AI, systemPrompt, ffmpegNLToCommand, ffmpegArgInterpolator };
+export {
+  AI,
+  systemPrompt,
+  initialPrompts,
+  ffmpegNLToCommand,
+  ffmpegArgInterpolator,
+};
