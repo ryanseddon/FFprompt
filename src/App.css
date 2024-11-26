@@ -59,10 +59,12 @@
   }
 }
 
+html, body, #root {
+  height: 100%;
+}
 #root {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem;
 }
 
 @layer base {

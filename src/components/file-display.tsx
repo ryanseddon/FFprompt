@@ -1,17 +1,16 @@
-import { getFileType } from "@/lib/utils";
-
-function FileDisplay({ src, ext }: { src: string; ext: string }) {
-  const fileType = getFileType(ext);
+function FileDisplay({ src, type }: { src: string; type: string }) {
+  const [fileType] = type.split("/");
+  const props = { src, className: "max-w-screen-sm" };
 
   switch (fileType) {
     case "image":
-      return <img src={src} />;
+      return <img {...props} />;
       break;
     case "video":
-      return <video src={src} controls />;
+      return <video {...props} controls />;
       break;
     case "audio":
-      return <audio src={src} controls />;
+      return <audio {...props} controls />;
       break;
   }
 }

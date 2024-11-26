@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useState, useRef } from "react";
 import { Sparkle, Send } from "lucide-react";
 
 import {
@@ -10,18 +10,21 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { MediaUpload } from "@/components/media-upload";
+import { Textarea } from "@/components/ui/textarea";
+import { MediaUpload, Attachment } from "@/components/media-upload";
 import { FileDisplay } from "@/components/file-display";
 import { useFFmpeg } from "@/hooks/ffmpeg";
 import { useAI } from "@/hooks/ai";
 import { ffmpegNLToCommand, ffmpegArgInterpolator } from "@/lib/AI";
-import { cn } from "@/lib/utils";
+import { cn, getMimeType } from "@/lib/utils";
 import "./App.css";
 
 function App() {
-  const { transcodeFile, getFile } = useFFmpeg();
+  const { transcodeFile, getFile, loadFFmpeg } = useFFmpeg();
   const { prompt } = useAI();
+  const formRef = useRef<null | HTMLFormElement>(null);
+  const scrollRef = useRef<null | HTMLDivElement>(null);
+  const textareaRef = useRef<null | HTMLTextAreaElement>(null);
   const [messages, setMessages] = useState<
     {
       role: "agent" | "assistant" | "user";
@@ -40,11 +43,40 @@ function App() {
   ]);
   const [input, setInput] = useState("");
   const [fileMetadata, setFileMetadata] = useState<{
-    input?: string;
-    output?: string;
+    input: string;
+    output: string;
+    name: string;
+    type: string;
   }>({});
+  const [files, setFiles] = useState<
+    { input: string; name: string; output: string; type: string }[]
+  >([]);
   const inputLength = input.trim().length;
   console.log(fileMetadata);
+
+  const handleAttachmentRemoval = async (file) => {
+    const ffmpeg = await loadFFmpeg();
+
+    await ffmpeg.deleteFile(file.input);
+
+    const newFiles = [...files].filter((f) => f.input !== file.input);
+
+    setFiles(newFiles);
+
+    if (fileMetadata.input === file.input) {
+      setFileMetadata({});
+    }
+
+    textareaRef.current?.focus();
+  };
+
+  useEffect(() => {
+    // Scroll to the bottom whenever messages change
+    const container = scrollRef.current;
+    if (container) {
+      container.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
 
   useEffect(() => {
     const llm = async () => {
@@ -66,6 +98,7 @@ function App() {
         const res = await prompt(latestMessage.content);
 
         console.log(res);
+
         if (ffmpegNLToCommand.has(res)) {
           const newMessages = messages.filter(
             (msg) => msg.role !== "assistant"
@@ -80,13 +113,16 @@ function App() {
 
           try {
             const cliArgs = ffmpegArgInterpolator(res, fileMetadata);
-            await transcodeFile(ffmpegArgInterpolator(res, fileMetadata));
+            await transcodeFile(cliArgs);
             const output =
               fileMetadata.output !== cliArgs[cliArgs.length - 1]
                 ? cliArgs[cliArgs.length - 1]
                 : fileMetadata.output;
             const [fileExt] = output.split(".").reverse();
-            const fileURL = await getFile(output, fileExt);
+
+            const outputMimetype = getMimeType(fileExt);
+
+            const fileURL = await getFile(output, outputMimetype);
             const newMessages = messages.filter(
               (msg) => msg.role !== "assistant"
             );
@@ -94,16 +130,17 @@ function App() {
               ...newMessages,
               {
                 role: "agent",
-                content: <FileDisplay src={fileURL} ext={fileExt} />,
+                content: <FileDisplay src={fileURL} type={outputMimetype} />,
               },
             ]);
           } catch (e) {
+            console.error(e);
             setMessages([
               ...messages,
               {
                 role: "agent",
                 content:
-                  "I'm sorry, but I can't seem to find any files video or audio files. Did you upload one yet?",
+                  "I'm sorry, but I can't seem to find any files. Did you upload one yet?",
               },
             ]);
           }
@@ -125,16 +162,15 @@ function App() {
 
   return (
     <>
-      <header className="flex sticky top-0 bg-background py-1.5 items-center px-2 md:px-2 gap-2"></header>
-      <Card>
+      <div className="flex flex-col h-screen">
         <CardHeader>
           <CardTitle>FFPrompt</CardTitle>
           <CardDescription>
             Drop in a video and/or audio file and describe what you want to do
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
+        <CardContent className="flex flex-1 overflow-y-hidden pb-0">
+          <div className="space-y-4 overflow-y-auto  max-w-screen-lg pb-6">
             {messages.map((message, index) => (
               <div
                 key={index}
@@ -152,10 +188,12 @@ function App() {
                 {message.content}
               </div>
             ))}
+            <div ref={scrollRef} />
           </div>
         </CardContent>
-        <CardFooter>
+        <CardFooter className="mt-auto">
           <form
+            ref={formRef}
             onSubmit={(event) => {
               event.preventDefault();
               if (inputLength === 0) return;
@@ -168,26 +206,51 @@ function App() {
               ]);
               setInput("");
             }}
-            className="flex w-full items-center space-x-2"
+            className="w-full relative"
           >
-            <Input
+            <Attachment files={files} handleRemove={handleAttachmentRemoval} />
+            <Textarea
               id="message"
               placeholder="Remove audio..."
-              className="flex-1"
+              className={`flex-1 resize-none ${files.length ? "pt-16" : ""}`}
               autoComplete="off"
+              autoFocus={true}
               value={input}
+              ref={textareaRef}
               onChange={(event) => setInput(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && !event.shiftKey) {
+                  event.preventDefault();
+                  if (formRef.current) {
+                    const event = new Event("submit", {
+                      bubbles: true,
+                      cancelable: true,
+                    });
+                    formRef.current.dispatchEvent(event);
+                  }
+                }
+              }}
             />
-            <Button type="submit" size="icon" disabled={inputLength === 0}>
+            <Button
+              type="submit"
+              className="absolute bottom-2 right-2"
+              size="icon"
+              disabled={inputLength === 0}
+            >
               <Send />
               <span className="sr-only">Send</span>
             </Button>
             <MediaUpload
-              onChangeHandler={(fileMetadata) => setFileMetadata(fileMetadata)}
+              className="absolute bottom-2 right-14"
+              onChangeHandler={(fileMetadata) => {
+                setFileMetadata(fileMetadata);
+                setFiles([...files, fileMetadata]);
+                textareaRef.current?.focus();
+              }}
             />
           </form>
         </CardFooter>
-      </Card>
+      </div>
     </>
   );
 }
