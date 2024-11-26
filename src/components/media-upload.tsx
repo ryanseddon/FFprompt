@@ -86,6 +86,16 @@ const FileIcon: React.FC<{ mimetype: string; size: number }> = ({
 };
 
 const Attachment: React.FC<{ files: [] }> = ({ files, handleRemove }) => {
+  const { loadFFmpeg } = useFFmpeg();
+
+  const handleRemoveFile = async (fileName: string) => {
+    const ffmpeg = await loadFFmpeg();
+
+    await ffmpeg.deleteFile(fileName);
+    const newFiles = [...files].filter((file) => file.input !== fileName);
+    setFiles(newFiles);
+  };
+
   return (
     <ul className="absolute flex top-3 left-3 gap-2 max-w-[95%] overflow-x-auto">
       {files &&
@@ -103,7 +113,7 @@ const Attachment: React.FC<{ files: [] }> = ({ files, handleRemove }) => {
               <button>
                 <CircleX
                   size={14}
-                  onClick={() => handleRemove(file)}
+                  onClick={() => handleRemoveFile(file.input)}
                   aria-label={`Remove ${file.input}`}
                 />
               </button>
