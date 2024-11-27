@@ -12,152 +12,25 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { MediaUpload, Attachment } from "@/components/media-upload";
-import { FileDisplay } from "@/components/file-display";
-import { useFFmpeg } from "@/hooks/ffmpeg";
-import { useAI } from "@/hooks/ai";
-import { ffmpegNLToCommand, ffmpegArgInterpolator } from "@/lib/AI";
-import { cn, getMimeType } from "@/lib/utils";
+import { useChatMessages } from "@/hooks/chat";
+import { useFileOperations } from "@/hooks/files";
+import { cn } from "@/lib/utils";
 import "./App.css";
 
 function App() {
-  const { transcodeFile, getFile, loadFFmpeg } = useFFmpeg();
-  const { prompt } = useAI();
+  const { messages, input, setInput, handleMessage } = useChatMessages();
+  const { files, fileMetadata, handleAttachmentRemoval, handleFileUpload } =
+    useFileOperations();
   const formRef = useRef<null | HTMLFormElement>(null);
   const scrollRef = useRef<null | HTMLDivElement>(null);
   const textareaRef = useRef<null | HTMLTextAreaElement>(null);
-  const [messages, setMessages] = useState<
-    {
-      role: "agent" | "assistant" | "user";
-      content: string | ReactNode;
-    }[]
-  >([
-    {
-      role: "agent",
-      content: "Hi, try using natrual language to edit an uploaded video",
-    },
-    {
-      role: "agent",
-      content:
-        'For example you could type "Remove audio". This would convert that to an ffmpeg command',
-    },
-  ]);
-  const [input, setInput] = useState("");
-  const [fileMetadata, setFileMetadata] = useState<{
-    input: string;
-    output: string;
-    name: string;
-    type: string;
-  }>({});
-  const [files, setFiles] = useState<
-    { input: string; name: string; output: string; type: string }[]
-  >([]);
+
   const inputLength = input.trim().length;
   console.log(fileMetadata);
 
-  const handleAttachmentRemoval = async (file) => {
-    const ffmpeg = await loadFFmpeg();
-
-    await ffmpeg.deleteFile(file.input);
-
-    const newFiles = [...files].filter((f) => f.input !== file.input);
-
-    setFiles(newFiles);
-
-    if (fileMetadata.input === file.input) {
-      setFileMetadata({});
-    }
-
-    textareaRef.current?.focus();
-  };
-
   useEffect(() => {
     // Scroll to the bottom whenever messages change
-    const container = scrollRef.current;
-    if (container) {
-      container.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [messages]);
-
-  useEffect(() => {
-    const llm = async () => {
-      const latestMessage = messages[messages.length - 1];
-      if (typeof latestMessage.content !== "string") {
-        // This is a FileDisplay message so just return early
-        return;
-      }
-
-      if (latestMessage.role === "user") {
-        setMessages([
-          ...messages,
-          {
-            role: "assistant",
-            content: "Thinking...",
-          },
-        ]);
-
-        const res = await prompt(latestMessage.content);
-
-        console.log(res);
-
-        if (ffmpegNLToCommand.has(res)) {
-          const newMessages = messages.filter(
-            (msg) => msg.role !== "assistant"
-          );
-          setMessages([
-            ...newMessages,
-            {
-              role: "assistant",
-              content: "Transcoding file now...",
-            },
-          ]);
-
-          try {
-            const cliArgs = ffmpegArgInterpolator(res, fileMetadata);
-            await transcodeFile(cliArgs);
-            const output =
-              fileMetadata.output !== cliArgs[cliArgs.length - 1]
-                ? cliArgs[cliArgs.length - 1]
-                : fileMetadata.output;
-            const [fileExt] = output.split(".").reverse();
-
-            const outputMimetype = getMimeType(fileExt);
-
-            const fileURL = await getFile(output, outputMimetype);
-            const newMessages = messages.filter(
-              (msg) => msg.role !== "assistant"
-            );
-            setMessages([
-              ...newMessages,
-              {
-                role: "agent",
-                content: <FileDisplay src={fileURL} type={outputMimetype} />,
-              },
-            ]);
-          } catch (e) {
-            console.error(e);
-            setMessages([
-              ...messages,
-              {
-                role: "agent",
-                content:
-                  "I'm sorry, but I can't seem to find any files. Did you upload one yet?",
-              },
-            ]);
-          }
-        } else {
-          setMessages([
-            ...messages,
-            {
-              role: "agent",
-              content:
-                "I'm sorry, I'm not sure I can do that. Can you try again with different wording e.g. 'Convert to gif'",
-            },
-          ]);
-        }
-      }
-    };
-
-    llm();
+    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   return (
@@ -166,7 +39,8 @@ function App() {
         <CardHeader>
           <CardTitle>FFPrompt</CardTitle>
           <CardDescription>
-            Drop in a video and/or audio file and describe what you want to do
+            Upload a video and/or audio file and describe what you want to do in
+            the chat below.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-1 overflow-y-hidden pb-0">
@@ -196,19 +70,17 @@ function App() {
             ref={formRef}
             onSubmit={(event) => {
               event.preventDefault();
-              if (inputLength === 0) return;
-              setMessages([
-                ...messages,
-                {
-                  role: "user",
-                  content: input,
-                },
-              ]);
-              setInput("");
+              handleMessage(fileMetadata);
             }}
             className="w-full relative"
           >
-            <Attachment files={files} handleRemove={handleAttachmentRemoval} />
+            <Attachment
+              files={files}
+              handleRemove={(file) => {
+                handleAttachmentRemoval(file);
+                textareaRef.current?.focus();
+              }}
+            />
             <Textarea
               id="message"
               placeholder="Remove audio..."
@@ -243,8 +115,7 @@ function App() {
             <MediaUpload
               className="absolute bottom-2 right-14"
               onChangeHandler={(fileMetadata) => {
-                setFileMetadata(fileMetadata);
-                setFiles([...files, fileMetadata]);
+                handleFileUpload(fileMetadata);
                 textareaRef.current?.focus();
               }}
             />

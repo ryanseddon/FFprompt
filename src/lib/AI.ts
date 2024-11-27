@@ -106,11 +106,10 @@ const initialPrompts = [
   { role: "assistant", content: "Extract audio from video" },
   { role: "user", content: "scale up" },
   { role: "assistant", content: "Change video resolution" },
-  { role: "user", content: "Get audio" },
-  { role: "assistant", content: "make a gif" },
-  { role: "user", content: "Convert video to GIF" },
-  { role: "assistant", content: "get first 10 seconds" },
-  { role: "user", content: "Trim a video (first 5 seconds)" },
+  { role: "user", content: "turn into a gif" },
+  { role: "assistant", content: "Convert video to GIF" },
+  { role: "user", content: "get first 10 seconds" },
+  { role: "assistant", content: "Trim a video (first 5 seconds)" },
 ];
 
 const ffmpegNLToCommand = new Map(Object.entries(nlToCommand));

@@ -85,17 +85,19 @@ const FileIcon: React.FC<{ mimetype: string; size: number }> = ({
   return <FileImage size={size} />;
 };
 
-const Attachment: React.FC<{ files: [] }> = ({ files, handleRemove }) => {
-  const { loadFFmpeg } = useFFmpeg();
-
-  const handleRemoveFile = async (fileName: string) => {
-    const ffmpeg = await loadFFmpeg();
-
-    await ffmpeg.deleteFile(fileName);
-    const newFiles = [...files].filter((file) => file.input !== fileName);
-    setFiles(newFiles);
+const Attachment: React.FC<{ files: []; handleRemove: (file: {}) => void }> = ({
+  files,
+  handleRemove,
+}) => {
+  const handleKeyDown = (
+    event: React.KeyboardEvent<HTMLButtonElement>,
+    file: {}
+  ) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      handleRemove(file);
+    }
   };
-
   return (
     <ul className="absolute flex top-3 left-3 gap-2 max-w-[95%] overflow-x-auto">
       {files &&
@@ -110,12 +112,12 @@ const Attachment: React.FC<{ files: [] }> = ({ files, handleRemove }) => {
               <span className="inline-block max-w-28 truncate">
                 {file.input}
               </span>
-              <button>
-                <CircleX
-                  size={14}
-                  onClick={() => handleRemoveFile(file.input)}
-                  aria-label={`Remove ${file.input}`}
-                />
+              <button
+                onClick={() => handleRemove(file)}
+                onKeyDown={(e) => handleKeyDown(e, file)}
+              >
+                <CircleX size={14} />
+                <span className="sr-only">Remove {file.input} attachment</span>
               </button>
             </li>
           );
