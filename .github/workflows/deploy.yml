@@ -58,7 +58,7 @@ jobs:
         working-directory: ${{ env.BUILD_PATH }}
       - name: Build site
         run: |
-          ${{ steps.detect-package-manager.outputs.runner }} run build
+          ${{ steps.detect-package-manager.outputs.manager }} run build
         working-directory: ${{ env.BUILD_PATH }}
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
