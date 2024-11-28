@@ -14,6 +14,7 @@ interface AILanguageModelCreateOptionsWithSystemPrompt
   >;
 }
 
+// -y makes it so the file can be overridden
 const nlToCommand = {
   // "Convert video to different format": ["-i", "{{input}}", "{{output}}"],
   "Extract audio from video": [
@@ -23,6 +24,7 @@ const nlToCommand = {
     "0",
     "-map",
     "a",
+    "-y",
     "{{name}}.mp3",
   ],
   // "Convert audio to a different format": ["-i", "{{input}}", "output.mp3"],
@@ -33,6 +35,7 @@ const nlToCommand = {
     "5",
     "-c",
     "copy",
+    "-y",
     "{{output}}",
   ],
   "Trim a video (from a specific start time)": [
@@ -46,6 +49,7 @@ const nlToCommand = {
     "libx264",
     "-c:a",
     "aac",
+    "-y",
     "{{output}}",
   ],
   "Remove audio from a video": [
@@ -54,6 +58,7 @@ const nlToCommand = {
     "-an",
     "-c:v",
     "copy",
+    "-y",
     "{{output}}",
   ],
   // "Add audio to a video": [
@@ -72,6 +77,7 @@ const nlToCommand = {
     "{{input}}",
     "-vf",
     "scale=1280:720",
+    "-y",
     "{{output}}",
   ],
   "Convert video to GIF": [
@@ -81,6 +87,7 @@ const nlToCommand = {
     "fps=10,scale=320:-1:flags=lanczos",
     "-c:v",
     "gif",
+    "-y",
     "{{name}}.gif",
   ],
   "Extract video frames (as images)": [
@@ -88,6 +95,7 @@ const nlToCommand = {
     "{{input}}",
     "-vf",
     "fps=1",
+    "-y",
     "{{name}}_%03d.png",
   ],
 };
