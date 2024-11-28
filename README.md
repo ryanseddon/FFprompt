@@ -33,7 +33,7 @@ npm run dev
 
 ## How does it work
 
-Using the built-in Gemini Nano model we take in natural language queries and map that to the closest match in a `Map` that holds the actual ffmpeg command e.g.
+Using the [Prompt API](https://github.com/explainers-by-googlers/prompt-api) we take in natural language queries and map that to the closest match in a `Map` that holds the actual ffmpeg command e.g.
 
 E.g "Turn into gif" -> Gemini Nano -> "Convert video to GIF"
 
