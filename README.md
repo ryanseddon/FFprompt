@@ -1,50 +1,55 @@
-# React + TypeScript + Vite
+# FFPrompt
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Attach a video file and use naturual language to describe what you want to do to it.
 
-Currently, two official plugins are available:
+> [!IMPORTANT]
+> This only works with Chrome Dev+ that has the built-in AI features enabled
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+<details>
+  <summary>Setup Instructions</summary>
+  <ol>
+    <li>**Install Chrome Dev**: Ensure you have version 127. [Download Chrome Dev](https://google.com/chrome/dev/).</li>
+    <li>Check that you’re on 127.0.6512.0 or above</li>
+    <li>Enable two flags:
+      <ul>
+        <li>chrome://flags/#optimization-guide-on-device-model - BypassPerfRequirement</li>
+        <li>chrome://flags/#prompt-api-for-gemini-nano - Enabled</li>
+      </ul>
+    </li>
+    <li>Relaunch Chrome</li>
+    <li>Navigate to chrome://components</li>
+    <li>Check that Optimization Guide On Device Model is downloading or force download if not
+    Might take a few minutes for this component to even appear</li>
+    <li>Open dev tools and type `(await ai.languageModel.capabilities()).available`, should return "readily" when all good</li>
+  </ol>
+</details>
 
-## Expanding the ESLint configuration
+## Run locally
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
-
-- Configure the top-level `parserOptions` property like this:
-
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+```bash
+npm install
+npm run dev
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+## How does it work
+
+Using the built-in Gemini Nano model we take in natural language queries and map that to the closest match in a `Map` that holds the actual ffmpeg command e.g.
+
+E.g "Turn into gif" -> Gemini Nano -> "Convert video to GIF"
+
+Looking up that string it returns:
 
 ```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
+{
+  "Change video resolution": [
+    "-i",
+    "{{input}}",
+    "-vf",
+    "scale=1280:720",
+    "-y",
+    "{{output}}",
+  ],
+}
 ```
+
+This query then interpolates the input and output that is stored when you attach a file to get the actual file names to pass into [ffmpeg.wasm](https://github.com/ffmpegwasm/ffmpeg.wasm).
