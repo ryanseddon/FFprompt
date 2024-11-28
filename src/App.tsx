@@ -38,7 +38,10 @@ function App() {
     <>
       <div className="flex flex-col h-screen">
         <CardHeader>
-          <CardTitle>FFPrompt</CardTitle>
+          <CardTitle className="flex gap-1">
+            <img src="/logo.svg" width="22" />
+            FFPrompt
+          </CardTitle>
           <CardDescription>
             Attach a video file and describe what you want to do in the chat
             below.
