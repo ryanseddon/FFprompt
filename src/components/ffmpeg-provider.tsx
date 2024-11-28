@@ -36,9 +36,7 @@ export const FFmpegProvider: React.FC<{
 
     try {
       const ffmpeg = await loadFFmpeg();
-      ffmpeg.on("progress", ({ progress, time }) => {
-        console.log(time, progress);
-      });
+
       ffmpeg.on("log", ({ type, message }) => {
         console.log(type, message);
       });
@@ -59,7 +57,6 @@ export const FFmpegProvider: React.FC<{
     const objURL = URL.createObjectURL(
       new Blob([data.buffer], { type: fileType })
     );
-    console.log(objURL);
 
     return objURL;
   };
