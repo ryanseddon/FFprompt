@@ -26,7 +26,7 @@ export const useChatMessages = () => {
     {
       role: "agent",
       content:
-        'For example you could type "Remove audio". This would convert that to an ffmpeg command',
+        'For example you could type "Remove audio". This would look for an uploaded video and remove any audio tracks and give you back a silent video',
     },
   ]);
   const [input, setInput] = useState("");
