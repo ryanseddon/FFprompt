@@ -6,6 +6,7 @@ export type AIContextType = {
     input: string,
     options?: AILanguageModelPromptOptions | undefined
   ) => Promise<string>;
+  supports: boolean;
 };
 
 export const AIContext = createContext<AIContextType | null>(null);
@@ -13,11 +14,12 @@ export const AIContext = createContext<AIContextType | null>(null);
 export const AIProvider: React.FC<{
   children: ReactNode;
 }> = ({ children }) => {
-  console.log(initialPrompts);
   const localLM = new AI({ initialPrompts });
 
   return (
-    <AIContext.Provider value={{ prompt: localLM.prompt }}>
+    <AIContext.Provider
+      value={{ prompt: localLM.prompt, supports: localLM.supports }}
+    >
       {children}
     </AIContext.Provider>
   );

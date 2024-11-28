@@ -15,7 +15,7 @@ type Message = {
 let fileMetadata: FileMetadata;
 
 export const useChatMessages = () => {
-  const { prompt } = useAI();
+  const { prompt, supports } = useAI();
   const { transcodeFile, getFile } = useFFmpeg();
 
   const [messages, setMessages] = useState<Message[]>([
@@ -28,6 +28,14 @@ export const useChatMessages = () => {
       content:
         'For example you could type "Remove audio". This would look for an uploaded video and remove any audio tracks and give you back a silent video',
     },
+    ...(supports
+      ? []
+      : ([
+          {
+            role: "agent",
+            content: "Bummer, looks like your device doesn't support Chrome AI",
+          },
+        ] as const)),
   ]);
   const [input, setInput] = useState("");
 

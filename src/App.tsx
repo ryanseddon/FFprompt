@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { MediaUpload, Attachment } from "@/components/media-upload";
 import { useChatMessages } from "@/hooks/chat";
 import { useFileOperations } from "@/hooks/files";
+import { useAI } from "@/hooks/ai";
 import { cn } from "@/lib/utils";
 import "./App.css";
 
@@ -20,6 +21,7 @@ function App() {
   const { messages, input, setInput, handleMessage } = useChatMessages();
   const { files, fileMetadata, handleAttachmentRemoval, handleFileUpload } =
     useFileOperations();
+  const { supports } = useAI();
   const formRef = useRef<null | HTMLFormElement>(null);
   const scrollRef = useRef<null | HTMLDivElement>(null);
   const textareaRef = useRef<null | HTMLTextAreaElement>(null);
@@ -88,6 +90,7 @@ function App() {
               autoFocus={true}
               value={input}
               ref={textareaRef}
+              disabled={!supports}
               onChange={(event) => setInput(event.target.value)}
               onKeyDown={(event) => {
                 if (event.key === "Enter" && !event.shiftKey) {

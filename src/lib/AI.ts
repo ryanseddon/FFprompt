@@ -140,10 +140,12 @@ const ffmpegArgInterpolator = (
 class AI {
   session: AILanguageModel | null;
   options: AILanguageModelCreateOptionsWithSystemPrompt;
+  supports: boolean;
 
   constructor(options: object = {}) {
     this.options = options;
     this.session = null;
+    this.supports = !!window.ai?.languageModel;
   }
 
   static ready = "readily";
