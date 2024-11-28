@@ -2,17 +2,17 @@ import { ReactNode, useEffect, useState } from "react";
 
 import { useAI } from "@/hooks/ai";
 import { useFFmpeg } from "@/hooks/ffmpeg";
-import { useFileOperations } from "@/hooks/files";
 import { ffmpegNLToCommand, ffmpegArgInterpolator } from "@/lib/AI";
 import { getMimeType } from "@/lib/utils";
 import { FileDisplay } from "@/components/file-display";
+import { FileMetadata } from "@/types/FileMetadata.types";
 
 type Message = {
   role: "agent" | "assistant" | "user";
   content: string | React.ReactNode;
 };
 
-let fileMetadata;
+let fileMetadata: FileMetadata;
 
 export const useChatMessages = () => {
   const { prompt } = useAI();
@@ -89,7 +89,10 @@ export const useChatMessages = () => {
   const getFFmpegCmd = async () => {
     const latestMessage = messages[messages.length - 1];
 
-    if (latestMessage.role === "user") {
+    if (
+      latestMessage.role === "user" &&
+      typeof latestMessage.content === "string"
+    ) {
       setEphemeralMessage("Thinking...");
 
       const res = await prompt(latestMessage.content);
@@ -111,7 +114,7 @@ export const useChatMessages = () => {
     }
   };
 
-  const handleMessage = async (metadata: {}) => {
+  const handleMessage = async (metadata: FileMetadata) => {
     if (!input.trim()) return;
     fileMetadata = metadata;
 

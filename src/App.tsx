@@ -1,8 +1,7 @@
-import { ReactNode, useEffect, useState, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Sparkle, Send } from "lucide-react";
 
 import {
-  Card,
   CardContent,
   CardDescription,
   CardFooter,
@@ -39,8 +38,8 @@ function App() {
         <CardHeader>
           <CardTitle>FFPrompt</CardTitle>
           <CardDescription>
-            Upload a video and/or audio file and describe what you want to do in
-            the chat below.
+            Attach a video file and describe what you want to do in the chat
+            below.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-1 overflow-y-hidden pb-0">
@@ -54,7 +53,7 @@ function App() {
                     ? "ml-auto bg-primary text-primary-foreground"
                     : "bg-muted",
                   message.role === "assistant"
-                    ? "flex gap-2 flex-row items-center"
+                    ? "flex gap-2 flex-row items-center animate-pulse"
                     : ""
                 )}
               >

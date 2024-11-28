@@ -1,18 +1,42 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+type FileExtension =
+  | "jpg"
+  | "jpeg"
+  | "png"
+  | "gif"
+  | "bmp"
+  | "webp"
+  | "svg"
+  | "tiff"
+  | "ico"
+  | "mp3"
+  | "wav"
+  | "ogg"
+  | "flac"
+  | "m4a"
+  | "aac"
+  | "mp4"
+  | "mov"
+  | "avi"
+  | "mkv"
+  | "webm"
+  | "flv"
+  | "mpeg";
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function getMimeType(extension: string): string | null {
+export function getMimeType(extension: string): string {
   if (!extension || typeof extension !== "string") {
     throw new Error("Invalid file extension.");
   }
 
-  const normalizedExtension = extension.toLowerCase().trim();
+  const normalizedExtension = extension.toLowerCase().trim() as FileExtension;
 
-  const mimeTypes = {
+  const mimeTypes: Record<FileExtension, string> = {
     // Images
     jpg: "image/jpeg",
     jpeg: "image/jpeg",
@@ -42,5 +66,5 @@ export function getMimeType(extension: string): string | null {
     mpeg: "video/mpeg",
   };
 
-  return mimeTypes[normalizedExtension] || null;
+  return mimeTypes[normalizedExtension] || "text/plain";
 }

@@ -5,13 +5,14 @@ import {
   FileImage,
   CircleX,
 } from "lucide-react";
-import { fetchFile } from "@ffmpeg/util";
 
+import { fetchFile } from "@ffmpeg/util";
 import { useFFmpeg } from "@/hooks/ffmpeg";
 import { Button } from "@/components/ui/button";
+import { FileMetadata } from "@/types/FileMetadata.types";
 
 type ComponentProps = {
-  onChangeHandler: (fileMetadata: object) => void;
+  onChangeHandler: (fileMetadata: FileMetadata) => void;
 } & React.HTMLAttributes<HTMLButtonElement>;
 
 const MediaUpload: React.FC<ComponentProps> = ({
@@ -34,7 +35,6 @@ const MediaUpload: React.FC<ComponentProps> = ({
   };
 
   const handleMediaUpload = async (): Promise<void> => {
-    let fileHandle;
     const pickerOpts = {
       types: [
         {
@@ -57,7 +57,8 @@ const MediaUpload: React.FC<ComponentProps> = ({
       excludeAcceptAllOption: true,
       multiple: false,
     };
-    [fileHandle] = await window.showOpenFilePicker(pickerOpts);
+    // @ts-ignore
+    let [fileHandle] = await window.showOpenFilePicker(pickerOpts);
 
     let file = await fileHandle.getFile();
 
@@ -85,13 +86,13 @@ const FileIcon: React.FC<{ mimetype: string; size: number }> = ({
   return <FileImage size={size} />;
 };
 
-const Attachment: React.FC<{ files: []; handleRemove: (file: {}) => void }> = ({
-  files,
-  handleRemove,
-}) => {
+const Attachment: React.FC<{
+  files: FileMetadata[];
+  handleRemove: (file: FileMetadata) => void;
+}> = ({ files, handleRemove }) => {
   const handleKeyDown = (
     event: React.KeyboardEvent<HTMLButtonElement>,
-    file: {}
+    file: FileMetadata
   ) => {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();

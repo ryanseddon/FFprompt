@@ -1,12 +1,6 @@
 import { useState } from "react";
 import { useFFmpeg } from "@/hooks/ffmpeg";
-
-type FileMetadata = {
-  input: string;
-  output: string;
-  name: string;
-  type: string;
-};
+import { FileMetadata } from "@/types/FileMetadata.types";
 
 export const useFileOperations = () => {
   const { loadFFmpeg } = useFFmpeg();
