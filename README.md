@@ -24,6 +24,8 @@ Attach a video file and use natural language to describe what you want to do to 
   </ol>
 </details>
 
+![Screenshot of FFprompt UI](public/screenshot.webp)
+
 ## Run locally
 
 ```bash
