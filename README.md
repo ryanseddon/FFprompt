@@ -43,13 +43,15 @@ Looking up that string it returns:
 
 ```js
 {
-  "Change video resolution": [
+  "Convert video to GIF": [
     "-i",
     "{{input}}",
     "-vf",
-    "scale=1280:720",
+    "fps=10,scale=320:-1:flags=lanczos",
+    "-c:v",
+    "gif",
     "-y",
-    "{{output}}",
+    "{{name}}.gif",
   ],
 }
 ```
