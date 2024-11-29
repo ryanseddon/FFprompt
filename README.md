@@ -24,7 +24,7 @@ Attach a video file and use natural language to describe what you want to do to 
   </ol>
 </details>
 
-![Screenshot of FFprompt UI](public/screenshot.webp)
+![Screenshot of FFprompt UI](public/screenshot.png)
 
 ## Run locally
 
