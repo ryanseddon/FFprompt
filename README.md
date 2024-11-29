@@ -1,6 +1,6 @@
 # <img src="public/logo.svg" width="26px" /> FFPrompt
 
-Attach a video file and use naturual language to describe what you want to do to it.
+Attach a video file and use natural language to describe what you want to do to it.
 
 > [!IMPORTANT]
 > This only works with Chrome Dev+ that has the built-in AI features enabled
