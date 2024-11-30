@@ -1,4 +1,14 @@
-function FileDisplay({ src, type }: { src: string; type: string }) {
+import { Button } from "@/components/ui/button";
+
+function FileDisplay({
+  src,
+  type,
+  ext,
+}: {
+  src: string;
+  type: string;
+  ext: string;
+}) {
   const [fileType] = type.split("/");
   const props = { src, className: "max-w-screen-sm" };
 
@@ -12,6 +22,14 @@ function FileDisplay({ src, type }: { src: string; type: string }) {
     case "audio":
       return <audio {...props} controls />;
       break;
+    default:
+      return (
+        <Button variant="link">
+          <a href={src} download={`file.${ext}`}>
+            Not sure how to render click to download
+          </a>
+        </Button>
+      );
   }
 }
 
