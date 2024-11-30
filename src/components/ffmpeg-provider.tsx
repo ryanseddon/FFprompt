@@ -34,6 +34,8 @@ export const FFmpegProvider: React.FC<{
       return null;
     }
 
+    console.log(`ffmpeg ${command.join(" ")}`);
+
     try {
       const ffmpeg = await loadFFmpeg();
 
