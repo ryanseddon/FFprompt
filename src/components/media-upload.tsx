@@ -6,6 +6,7 @@ import {
   CircleX,
 } from "lucide-react";
 
+import { useToast } from "@/hooks/use-toast";
 import { fetchFile } from "@ffmpeg/util";
 import { useFFmpeg } from "@/hooks/ffmpeg";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ const MediaUpload: React.FC<ComponentProps> = ({
   ...props
 }) => {
   const { loadFFmpeg } = useFFmpeg();
+  const { toast } = useToast();
 
   const mountFS = async (file: File): Promise<void> => {
     const ffmpeg = await loadFFmpeg();
@@ -59,8 +61,19 @@ const MediaUpload: React.FC<ComponentProps> = ({
     };
     // @ts-ignore
     let [fileHandle] = await window.showOpenFilePicker(pickerOpts);
-
     let file = await fileHandle.getFile();
+    const fileSizeMB = file.size / (1024 * 1024);
+
+    if (fileSizeMB > 100) {
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description:
+          "The file is too large, please upload a files smaller than 100MB.",
+      });
+
+      return;
+    }
 
     await mountFS(file);
   };

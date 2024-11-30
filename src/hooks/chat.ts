@@ -80,7 +80,9 @@ export const useChatMessages = () => {
       const fileURL = await getFile(output, outputMimetype);
 
       // Can't do jsx so just pass the reactnode fn instead, hack for now
-      setMediaMessage(FileDisplay({ src: fileURL, type: outputMimetype }));
+      setMediaMessage(
+        FileDisplay({ src: fileURL, type: outputMimetype, ext: fileExt })
+      );
     } catch (err) {
       console.error(err);
       setMessages([

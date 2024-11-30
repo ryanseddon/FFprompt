@@ -13,6 +13,7 @@
     "@ffmpeg/ffmpeg": "^0.12.10",
     "@ffmpeg/util": "^0.12.1",
     "@radix-ui/react-slot": "^1.1.0",
+    "@radix-ui/react-toast": "^1.2.2",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "lodash": "^4.17.21",
