@@ -17,6 +17,16 @@ interface AILanguageModelCreateOptionsWithSystemPrompt
 // -y makes it so the file can be overridden
 const nlToCommand = {
   // "Convert video to different format": ["-i", "{{input}}", "{{output}}"],
+  "Convert video to mp4": [
+    "-i",
+    "{{input}}",
+    "-c:v",
+    "libx264",
+    "-c:a",
+    "aac",
+    "-y",
+    "{{name}}.mp4",
+  ],
   "Extract audio from video": [
     "-i",
     "{{input}}",
