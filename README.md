@@ -1,4 +1,4 @@
-# <img src="public/logo.svg" width="26px" /> FFPrompt
+# <img src="public/logo.svg" width="26px" /> FFprompt
 
 Attach a video file and use natural language to describe what you want to do to it.
 
