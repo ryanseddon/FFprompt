@@ -40,7 +40,7 @@ export const FFmpegProvider: React.FC<{
       const ffmpeg = await loadFFmpeg();
 
       ffmpeg.on("log", ({ type, message }) => {
-        console.log(type, message);
+        console.log(message);
       });
 
       await ffmpeg.exec(command);
