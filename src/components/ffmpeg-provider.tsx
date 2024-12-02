@@ -1,5 +1,6 @@
 import { useState, createContext, ReactNode } from "react";
 import { FFmpeg } from "@/lib/FFmpeg";
+import { useToast } from "@/hooks/use-toast";
 
 export type FFmpegContextType = {
   loading: boolean;
@@ -14,6 +15,7 @@ export const FFmpegProvider: React.FC<{
   children: ReactNode;
 }> = ({ children }) => {
   const [ffmpeg] = useState(new FFmpeg());
+  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 
   const loadFFmpeg = async (): Promise<FFmpeg["ffmpeg"]> => {
@@ -36,6 +38,12 @@ export const FFmpegProvider: React.FC<{
 
     console.log(`ffmpeg ${command.join(" ")}`);
 
+    const timeoutId = setTimeout(() => {
+      toast({
+        title: "This operation might take a bit",
+        description: "Check the dev tools console to see ffmpeg progress",
+      });
+    }, 5000);
     try {
       const ffmpeg = await loadFFmpeg();
 
@@ -49,6 +57,8 @@ export const FFmpegProvider: React.FC<{
     } catch (err) {
       console.error(err);
       throw err;
+    } finally {
+      clearTimeout(timeoutId);
     }
   };
 
