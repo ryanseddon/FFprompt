@@ -26,7 +26,6 @@ function App() {
   const textareaRef = useRef<null | HTMLTextAreaElement>(null);
 
   const inputLength = input.trim().length;
-  console.log(fileMetadata);
 
   useEffect(() => {
     // Scroll to the bottom whenever messages change
