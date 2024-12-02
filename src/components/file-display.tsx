@@ -10,7 +10,7 @@ function FileDisplay({
   ext: string;
 }) {
   const [fileType] = type.split("/");
-  const props = { src, className: "max-w-screen-sm" };
+  const props = { src, className: "max-h-80" };
 
   switch (fileType) {
     case "image":
