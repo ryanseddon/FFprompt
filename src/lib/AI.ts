@@ -108,6 +108,24 @@ const nlToCommand = {
     "-y",
     "{{name}}_%03d.png",
   ],
+  // Very complex filter test, make it tiktok 1080x1920 but keep aspext ratio of original video and stack a blurred version underneath it
+  "Make it portrait for tiktok or shorts": [
+    "-i",
+    "{{input}}",
+    "-filter_complex",
+    "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920:(iw-1080)/2:(ih-1920)/2,boxblur=10:10[bg];[0:v]scale=iw*2.25:ih*2.25:force_original_aspect_ratio=decrease[fg];[bg][fg]overlay=(W-w)/2:(H-h)/2",
+    "-c:v",
+    "libx264",
+    "-crf",
+    "23",
+    "-preset",
+    "fast",
+    "-c:a",
+    "aac",
+    "-b:a",
+    "128k",
+    "{{output}}",
+  ],
 };
 
 const systemPrompt = `Your job is to get the closest match from the input that matches one of the following comma separated items that appear only within """.
@@ -128,6 +146,10 @@ const initialPrompts = [
   { role: "assistant", content: "Convert video to GIF" },
   { role: "user", content: "get first 10 seconds" },
   { role: "assistant", content: "Trim a video (first 5 seconds)" },
+  { role: "user", content: "format for tiktok" },
+  { role: "assistant", content: "Make it portrait for tiktok or shorts" },
+  { role: "user", content: "convert to youtube shorts" },
+  { role: "assistant", content: "Make it portrait for tiktok or shorts" },
 ];
 
 const ffmpegNLToCommand = new Map(Object.entries(nlToCommand));

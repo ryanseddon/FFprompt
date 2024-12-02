@@ -27,7 +27,18 @@ const MediaUpload: React.FC<ComponentProps> = ({
     const ffmpeg = await loadFFmpeg();
     const fileData = await fetchFile(file);
 
+    ffmpeg.on("log", ({ type, message }) => {
+      if (message.includes("Stream #0")) {
+        const dimensions = message.match(/(\d{2,})x(\d{2,})/);
+        if (dimensions) {
+          console.log(dimensions);
+        }
+      }
+    });
+
     await ffmpeg.writeFile(file.name, fileData);
+    await ffmpeg.exec(["-i", file.name]);
+
     onChangeHandler({
       input: file.name,
       type: file.type,
