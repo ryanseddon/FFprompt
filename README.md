@@ -2,8 +2,11 @@
 
 Attach a video file and use natural language to describe what you want to do to it.
 
+
 > [!IMPORTANT]
 > This only works with Chrome Dev+ that has the built-in AI features enabled
+
+[![YouTube](http://i.ytimg.com/vi/D7RBtvDFRo8/hqdefault.jpg)](https://www.youtube.com/watch?v=D7RBtvDFRo8)
 
 <details>
   <summary>How to enable built-in AI</summary>
