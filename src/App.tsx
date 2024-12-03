@@ -29,7 +29,9 @@ function App() {
 
   useEffect(() => {
     // Scroll to the bottom whenever messages change
-    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+    setTimeout(() => {
+      scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 200);
   }, [messages]);
 
   return (
