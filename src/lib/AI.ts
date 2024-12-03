@@ -108,6 +108,13 @@ const nlToCommand = {
     "-y",
     "{{name}}_%03d.png",
   ],
+  "Convert video to black and white": [
+    "-i",
+    "{{input}}",
+    "-vf",
+    "hue=s=0",
+    "{{output}}",
+  ],
 };
 
 const systemPrompt = `Your job is to get the closest match from the input that matches one of the following comma separated items that appear only within """.
@@ -128,6 +135,8 @@ const initialPrompts = [
   { role: "assistant", content: "Convert video to GIF" },
   { role: "user", content: "get first 10 seconds" },
   { role: "assistant", content: "Trim a video (first 5 seconds)" },
+  { role: "user", content: "make it old school" },
+  { role: "assistant", content: "Convert video to black and white" },
 ];
 
 const ffmpegNLToCommand = new Map(Object.entries(nlToCommand));
