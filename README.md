@@ -6,7 +6,7 @@ Attach a video file and use natural language to describe what you want to do to 
 > [!IMPORTANT]
 > This only works with Chrome Dev+ that has the built-in AI features enabled
 
-[![YouTube](http://i.ytimg.com/vi/D7RBtvDFRo8/hqdefault.jpg)](https://www.youtube.com/watch?v=D7RBtvDFRo8)
+[![YouTube](https://github.com/user-attachments/assets/dd929b60-2fe3-4593-b5b9-500532f2d54b)](https://www.youtube.com/watch?v=D7RBtvDFRo8)
 
 <details>
   <summary>How to enable built-in AI</summary>
