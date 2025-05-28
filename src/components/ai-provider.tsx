@@ -4,7 +4,7 @@ import { AI, initialPrompts } from "@/lib/AI";
 export type AIContextType = {
   prompt: (
     input: string,
-    options?: AILanguageModelPromptOptions | undefined
+    options?: LanguageModelPromptOptions | undefined,
   ) => Promise<string>;
   supports: boolean;
 };
