@@ -2,16 +2,15 @@
 
 Attach a video file and use natural language to describe what you want to do to it.
 
-
 > [!IMPORTANT]
 > This only works with Chrome Dev+ that has the built-in AI features enabled
 
 [![YouTube](https://github.com/user-attachments/assets/dd929b60-2fe3-4593-b5b9-500532f2d54b)](https://www.youtube.com/watch?v=D7RBtvDFRo8)
 
 <details>
-  <summary>How to enable built-in AI</summary>
+  <summary>Setup Instructions</summary>
   <ol>
-    <li><strong>Install Chrome Dev</strong>: Ensure you have version 127. [Download Chrome Dev](https://google.com/chrome/dev/).</li>
+    <li>**Install Chrome Dev**: Ensure you have version 127. [Download Chrome Dev](https://google.com/chrome/dev/).</li>
     <li>Check that you’re on 127.0.6512.0 or above</li>
     <li>Enable two flags:
       <ul>
@@ -23,7 +22,11 @@ Attach a video file and use natural language to describe what you want to do to 
     <li>Navigate to chrome://components</li>
     <li>Check that Optimization Guide On Device Model is downloading or force download if not
     Might take a few minutes for this component to even appear</li>
-    <li>Open dev tools and type <code>(await ai.languageModel.capabilities()).available</code>, should return "readily" when all good</li>
+    <li>Open dev tools and type `(await LanguageModel.capabilities()).available`, should return "readily" when all good</li>
+    <li>If not you can trigger the download by doing the follow:
+      ```const session = await LanguageModel.create({monitor(m) {m.addEventListener("downloadprogress", e => {
+        console.log(`Downloaded \${e.loaded} of \${e.total} bytes.`);
+      });}});```</li>
   </ol>
 </details>
 

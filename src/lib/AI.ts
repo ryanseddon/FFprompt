@@ -1,19 +1,3 @@
-interface AILanguageModelCreateOptions {
-  signal?: AbortSignal;
-  monitor?: AICreateMonitorCallback;
-
-  topK?: number;
-  temperature?: number;
-}
-
-interface AILanguageModelCreateOptionsWithSystemPrompt
-  extends AILanguageModelCreateOptions {
-  systemPrompt?: string;
-  initialPrompts?: Array<
-    AILanguageModelAssistantPrompt | AILanguageModelUserPrompt
-  >;
-}
-
 // -y makes it so the file can be overridden
 const nlToCommand = {
   // "Convert video to different format": ["-i", "{{input}}", "{{output}}"],
@@ -142,14 +126,14 @@ const initialPrompts = [
 const ffmpegNLToCommand = new Map(Object.entries(nlToCommand));
 const ffmpegArgInterpolator = (
   key: string,
-  options: Record<string, string> = {}
+  options: Record<string, string> = {},
 ) => {
   const cliArgs = ffmpegNLToCommand.get(key);
   const reTemplateVars = /\{\{(.*?)\}\}/g;
 
   if (cliArgs) {
     return cliArgs.map((arg) =>
-      arg.replace(reTemplateVars, (_, key) => options[key])
+      arg.replace(reTemplateVars, (_, key) => options[key]),
     );
   }
 
@@ -157,20 +141,20 @@ const ffmpegArgInterpolator = (
 };
 
 class AI {
-  session: AILanguageModel | null;
-  options: AILanguageModelCreateOptionsWithSystemPrompt;
+  session: LanguageModel | null;
+  options: LanguageModelCreateOptions;
   supports: boolean;
 
   constructor(options: object = {}) {
     this.options = options;
     this.session = null;
-    this.supports = !!window.ai?.languageModel;
+    this.supports = !!LanguageModel;
   }
 
-  static ready = "readily";
+  static ready = "available";
 
-  #getSession = async (): Promise<AILanguageModel> => {
-    if (!window.ai?.languageModel) {
+  #getSession = async (): Promise<LanguageModel> => {
+    if (!LanguageModel) {
       console.error("Chrome AI not available on this device");
     }
 
@@ -180,29 +164,25 @@ class AI {
     }
 
     // Check if model is available and ready to use
-    const { available: canCreate } =
-      await window.ai.languageModel.capabilities();
+    const canCreate = await LanguageModel.availability();
 
     // canCreateTextSession returns `readily`, `after-download`
     if (canCreate !== AI.ready) {
       console.error(
-        "Chrome AI model is not downloaded yet, check chrome://components"
+        "Chrome AI model is not downloaded yet, check chrome://components",
       );
     }
 
-    const { defaultTemperature, defaultTopK } =
-      await window.ai.languageModel.capabilities();
+    const { defaultTemperature, defaultTopK } = await LanguageModel.params();
     const {
       temperature = defaultTemperature ?? undefined,
       topK = defaultTopK ?? undefined,
-      systemPrompt,
       initialPrompts,
     } = Object.assign({}, this.options);
 
-    this.session = await window.ai.languageModel.create({
+    this.session = await LanguageModel.create({
       temperature,
       topK,
-      ...(systemPrompt !== undefined && { systemPrompt: systemPrompt }),
       ...(initialPrompts !== undefined && { initialPrompts: initialPrompts }),
     });
 
@@ -217,7 +197,7 @@ class AI {
 
   prompt = async (
     input: string,
-    options?: AILanguageModelPromptOptions | undefined
+    options?: LanguageModelPromptOptions | undefined,
   ): Promise<string> => {
     const session = await this.#getSession();
     const res = await session.prompt(input, options);
