@@ -148,7 +148,7 @@ class AI {
   constructor(options: object = {}) {
     this.options = options;
     this.session = null;
-    this.supports = !!LanguageModel;
+    this.supports = !!LanguageModel ?? false;
   }
 
   static ready = "available";
