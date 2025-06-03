@@ -10,6 +10,15 @@ const nlToCommand = {
     "aac",
     "-y",
     "{{name}}.mp4",
+  ], 
+  "Convert video to mp3": [
+    "-i",
+    "{{input}}",
+    "-c:a",
+    "libmp3lame",
+    "-q:a",
+    "2",
+    "{{name}}.mp3",
   ],
   "Extract audio from video": [
     "-i",
