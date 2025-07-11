@@ -108,6 +108,13 @@ const nlToCommand = {
     "hue=s=0",
     "{{output}}",
   ],
+  "Blend pixels together for artsy look": [
+    "-i",
+    "{{input}}",
+    "-filter_complex",
+    "[0:v]split[orig][copy];[copy]setpts=PTS+0.4/TB[delayed];[orig][delayed]blend=all_expr='if(lt(mod(X*X+Y*Y,2000),1000),A,B)'",
+    "{{output}}",
+  ],
 };
 
 const systemPrompt = `Your job is to get the closest match from the input that matches one of the following comma separated items that appear only within """.
