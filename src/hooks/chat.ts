@@ -2,7 +2,7 @@ import { ReactNode, useEffect, useState } from "react";
 
 import { useAI } from "@/hooks/ai";
 import { useFFmpeg } from "@/hooks/ffmpeg";
-import { ffmpegNLToCommand, ffmpegArgInterpolator } from "@/lib/AI";
+import { ffmpegNLToCommand, ffmpegArgInterpolator } from "@/lib/ffmpeg-commands";
 import { getMimeType } from "@/lib/utils";
 import { FileDisplay } from "@/components/file-display";
 import { FileMetadata } from "@/types/FileMetadata.types";

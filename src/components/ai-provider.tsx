@@ -1,11 +1,8 @@
 import React, { createContext, ReactNode } from "react";
-import { AI, initialPrompts } from "@/lib/AI";
+import { promptWithBrowserAI, supportsBrowserAI } from "@/lib/AI";
 
 export type AIContextType = {
-  prompt: (
-    input: string,
-    options?: LanguageModelPromptOptions | undefined,
-  ) => Promise<string>;
+  prompt: (input: string) => Promise<string>;
   supports: boolean;
 };
 
@@ -14,11 +11,9 @@ export const AIContext = createContext<AIContextType | null>(null);
 export const AIProvider: React.FC<{
   children: ReactNode;
 }> = ({ children }) => {
-  const localLM = new AI({ initialPrompts });
-
   return (
     <AIContext.Provider
-      value={{ prompt: localLM.prompt, supports: localLM.supports }}
+      value={{ prompt: promptWithBrowserAI, supports: supportsBrowserAI() }}
     >
       {children}
     </AIContext.Provider>
