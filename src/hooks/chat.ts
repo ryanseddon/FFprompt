@@ -2,10 +2,10 @@ import { ReactNode, useEffect, useState } from "react";
 
 import { useAI } from "@/hooks/ai";
 import { useFFmpeg } from "@/hooks/ffmpeg";
-import { ffmpegNLToCommand, ffmpegArgInterpolator } from "@/lib/ffmpeg-commands";
 import { getMimeType } from "@/lib/utils";
 import { FileDisplay } from "@/components/file-display";
 import { FileMetadata } from "@/types/FileMetadata.types";
+import { createFFmpegTools, ToolResult } from "@/lib/tools";
 
 type Message = {
   role: "agent" | "assistant" | "user";
@@ -65,37 +65,6 @@ export const useChatMessages = () => {
     ]);
   };
 
-  const runFFmpegCmd = async (res: string) => {
-    try {
-      const cliArgs = ffmpegArgInterpolator(res, fileMetadata);
-      await transcodeFile(cliArgs);
-      const output =
-        fileMetadata.output !== cliArgs[cliArgs.length - 1]
-          ? cliArgs[cliArgs.length - 1]
-          : fileMetadata.output;
-      const [fileExt] = output.split(".").reverse();
-
-      const outputMimetype = getMimeType(fileExt);
-
-      const fileURL = await getFile(output, outputMimetype);
-
-      // Can't do jsx so just pass the reactnode fn instead, hack for now
-      setMediaMessage(
-        FileDisplay({ src: fileURL, type: outputMimetype, ext: fileExt })
-      );
-    } catch (err) {
-      console.error(err);
-      setMessages([
-        ...messages,
-        {
-          role: "agent",
-          content:
-            "I'm sorry, but I can't seem to find any files. Did you upload one yet?",
-        },
-      ]);
-    }
-  };
-
   const getFFmpegCmd = async () => {
     const latestMessage = messages[messages.length - 1];
 
@@ -105,21 +74,41 @@ export const useChatMessages = () => {
     ) {
       setEphemeralMessage("Thinking...");
 
-      const res = await prompt(latestMessage.content);
+      const tools = createFFmpegTools({
+        transcodeFile,
+        fileMetadata,
+      });
 
-      if (ffmpegNLToCommand.has(res)) {
-        setEphemeralMessage("Transcoding file now...");
+      const result = await prompt(latestMessage.content, tools);
 
-        await runFFmpegCmd(res);
-      } else {
-        setMessages([
-          ...messages,
-          {
+      if (result.toolCalls.length > 0) {
+        const lastToolCall = result.toolCalls[result.toolCalls.length - 1];
+        const toolResult = lastToolCall.result as ToolResult;
+        
+        if (toolResult.success && toolResult.outputFile) {
+          setEphemeralMessage("Done!");
+          // Load and display the output file
+          const [fileExt] = toolResult.outputFile.split(".").reverse();
+          const outputMimetype = getMimeType(fileExt);
+          const fileURL = await getFile(toolResult.outputFile, outputMimetype);
+
+          setMediaMessage(
+            FileDisplay({ src: fileURL, type: outputMimetype, ext: fileExt })
+          );
+        } else {
+          // Tool failed - error was already fed back to LLM for retry
+          // If we're here, retries exhausted
+          setMessages([...messages, {
             role: "agent",
-            content:
-              "I'm sorry, I'm not sure I can do that. Can you try again with different wording e.g. 'Convert to gif'",
-          },
-        ]);
+            content: `Failed: ${toolResult.message}. Error: ${toolResult.error}`,
+          }]);
+        }
+      } else {
+        // No tool called
+        setMessages([...messages, {
+          role: "agent",
+          content: "I'm not sure how to do that. Try something like 'convert to mp4' or 'scale to 720p'.",
+        }]);
       }
     }
   };
