@@ -51,7 +51,19 @@ export const FFmpegProvider: React.FC<{
         console.log(message);
       });
 
-      await ffmpeg.exec(command);
+      try {
+        await ffmpeg.exec(command);
+      } catch (execError) {
+        // ffmpeg.wasm throws "Aborted()" after successful completion
+        // Check if output file exists before treating as real error
+        const output = command[command.length - 1];
+        const dir = await ffmpeg.listDir("/");
+        const fileExists = dir.some((f: any) => f.name === output);
+        if (!fileExists) {
+          throw execError;
+        }
+      }
+
       const dir = await ffmpeg.listDir("/");
       console.log(dir);
     } catch (err) {
