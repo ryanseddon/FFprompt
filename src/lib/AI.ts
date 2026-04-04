@@ -10,6 +10,7 @@ export const promptWithBrowserAI = async (
     messages: [{ role: "user", content: input }],
     ...(tools && {
       tools,
+      toolChoice: 'auto' as const,
       stopWhen: stepCountIs(5),
     }),
   });
