@@ -6,6 +6,7 @@ import { getMimeType } from "@/lib/utils";
 import { FileDisplay } from "@/components/file-display";
 import { FileMetadata } from "@/types/FileMetadata.types";
 import { createFFmpegTools, ToolResult } from "@/lib/tools";
+import { debug } from "@/lib/debug";
 
 type Message = {
   role: "agent" | "assistant" | "user";
@@ -84,6 +85,7 @@ export const useChatMessages = () => {
       if (result.toolCalls.length > 0) {
         const lastToolCall = result.toolCalls[result.toolCalls.length - 1];
         const toolResult = lastToolCall.result as ToolResult;
+        debug.result(lastToolCall.toolName, toolResult);
         
         if (toolResult.success && toolResult.outputFile) {
           setEphemeralMessage("Done!");
@@ -105,6 +107,7 @@ export const useChatMessages = () => {
         }
       } else {
         // No tool called
+        debug.log("No tool called - model didn't select any tool");
         setMessages([...messages, {
           role: "agent",
           content: "I'm not sure how to do that. Try something like 'convert to mp4' or 'scale to 720p'.",
